@@ -37,7 +37,7 @@ type CommandBus interface {
 
 	// Register associates a command type with its corresponding handler.
 	// The command parameter is used to determine the type name for registration.
-	// Only one handler can be registered per command type (last registration wins).
+	// Multiple handlers can be registered per command type.
 	Register(c Command, ch CommandHandler)
 }
 
@@ -47,7 +47,7 @@ type defaultCommandBus struct {
 	// EventBus is used to dispatch domain events produced by command handlers
 	EventBus EventBus
 	// handlers maps command type names to their corresponding handlers
-	handlers map[string]CommandHandler
+	handlers map[string][]CommandHandler
 }
 
 // Dispatch executes the given command asynchronously in a new goroutine.
@@ -66,23 +66,27 @@ func (d *defaultCommandBus) Execute(c Command) {
 
 // Register stores a command handler for the given command type.
 // It uses reflection to extract the type name from the command instance.
-// If a handler already exists for this command type, it will be replaced.
+// Multiple handlers can be registered for the same command type.
 func (d *defaultCommandBus) Register(c Command, ch CommandHandler) {
-	d.handlers[reflect.TypeOf(c).Name()] = ch
+	typeName := reflect.TypeOf(c).Name()
+	d.handlers[typeName] = append(d.handlers[typeName], ch)
 }
 
 // handleCommand is the internal method that processes commands.
-// It looks up the handler, executes the command, collects events, and dispatches them.
-// Panics if no handler is registered for the command type.
+// It looks up the handlers, executes the command, collects events, and dispatches them.
+// Panics if no handlers are registered for the command type.
 func (d *defaultCommandBus) handleCommand(c Command) {
-	ch := d.handlers[reflect.TypeOf(c).Name()]
-	if ch == nil {
-		panic("no handler registered for command type: " + reflect.TypeOf(c).Name())
+	typeName := reflect.TypeOf(c).Name()
+	handlers := d.handlers[typeName]
+	if len(handlers) == 0 {
+		panic("no handlers registered for command type: " + typeName)
 	}
-	ch = ch.Handle(c)
-	events := ch.CollectEvents()
-	for _, e := range events {
-		d.EventBus.Dispatch(e)
+	for _, ch := range handlers {
+		ch = ch.Handle(c)
+		events := ch.CollectEvents()
+		for _, e := range events {
+			d.EventBus.Dispatch(e)
+		}
 	}
 }
 
@@ -92,6 +96,6 @@ func (d *defaultCommandBus) handleCommand(c Command) {
 func DefaultCommandBus(eventBus EventBus) *defaultCommandBus {
 	return &defaultCommandBus{
 		EventBus: eventBus,
-		handlers: make(map[string]CommandHandler),
+		handlers: make(map[string][]CommandHandler),
 	}
 }
