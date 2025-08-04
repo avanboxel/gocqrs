@@ -3,8 +3,7 @@ package validateusername
 import (
 	"fmt"
 
-	"github.com/avanboxel/gocqrs/commandbus"
-	"github.com/avanboxel/gocqrs/eventbus"
+	"github.com/avanboxel/gocqrs"
 )
 
 type ValidateUsernameCommand struct {
@@ -22,10 +21,10 @@ func (e UsernameValidated) GetEventType() string {
 }
 
 type ValidateUsernameHandler struct {
-	events []eventbus.Event
+	events []gocqrs.Event
 }
 
-func (v ValidateUsernameHandler) Handle(c commandbus.Command) commandbus.CommandHandler {
+func (v *ValidateUsernameHandler) Handle(c gocqrs.Command) gocqrs.CommandHandler {
 	if cmd, ok := c.(ValidateUsernameCommand); ok {
 		fmt.Printf("Validating username: %s\n", cmd.Username)
 
@@ -57,6 +56,6 @@ func (v ValidateUsernameHandler) Handle(c commandbus.Command) commandbus.Command
 	return v
 }
 
-func (v ValidateUsernameHandler) CollectEvents() []eventbus.Event {
+func (v *ValidateUsernameHandler) CollectEvents() []gocqrs.Event {
 	return v.events
 }

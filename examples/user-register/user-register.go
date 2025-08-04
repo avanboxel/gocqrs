@@ -3,8 +3,7 @@ package userregister
 import (
 	"fmt"
 
-	"github.com/avanboxel/gocqrs/commandbus"
-	"github.com/avanboxel/gocqrs/eventbus"
+	"github.com/avanboxel/gocqrs"
 )
 
 type RegisterCommand struct {
@@ -23,10 +22,10 @@ func (e UserRegistered) GetEventType() string {
 }
 
 type RegisterCommandHandler struct {
-	events []eventbus.Event
+	events []gocqrs.Event
 }
 
-func (r RegisterCommandHandler) Handle(c commandbus.Command) commandbus.CommandHandler {
+func (r *RegisterCommandHandler) Handle(c gocqrs.Command) gocqrs.CommandHandler {
 	if cmd, ok := c.(RegisterCommand); ok {
 		// Fake user registration logic
 		fmt.Printf("Registering user: %s with email: %s\n", cmd.Username, cmd.Email)
@@ -42,6 +41,6 @@ func (r RegisterCommandHandler) Handle(c commandbus.Command) commandbus.CommandH
 	return r
 }
 
-func (r RegisterCommandHandler) CollectEvents() []eventbus.Event {
+func (r *RegisterCommandHandler) CollectEvents() []gocqrs.Event {
 	return r.events
 }

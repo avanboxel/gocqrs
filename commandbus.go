@@ -1,10 +1,26 @@
-package commandbus
+package gocqrs
 
-import (
-	"reflect"
+import "reflect"
 
-	"github.com/avanboxel/gocqrs/eventbus"
-)
+// Command represents any command object that can be handled by a CommandHandler.
+// Commands are write operations that modify system state and may trigger side effects.
+// Examples: CreateUserCommand, UpdateProductCommand, DeleteOrderCommand
+type Command any
+
+// CommandHandler defines the interface for handling commands.
+// Each command type should have a corresponding handler that implements this interface.
+// Handlers are responsible for executing business logic and collecting domain events.
+type CommandHandler interface {
+	// Handle processes the given command and returns the handler instance.
+	// The handler pattern allows for method chaining and event collection.
+	// Business logic should be executed within this method.
+	Handle(c Command) CommandHandler
+
+	// CollectEvents returns all domain events that were produced during command handling.
+	// These events will be dispatched to the event bus after command execution.
+	// Returns an empty slice if no events were produced.
+	CollectEvents() []Event
+}
 
 // CommandBus defines the interface for a command bus that handles write operations.
 // It provides methods to execute commands synchronously or asynchronously and register command handlers.
@@ -29,7 +45,7 @@ type CommandBus interface {
 // It uses reflection to map command types to their handlers and integrates with an event bus.
 type defaultCommandBus struct {
 	// EventBus is used to dispatch domain events produced by command handlers
-	EventBus eventbus.EventBus
+	EventBus EventBus
 	// handlers maps command type names to their corresponding handlers
 	handlers map[string]CommandHandler
 }
@@ -70,10 +86,10 @@ func (d *defaultCommandBus) handleCommand(c Command) {
 	}
 }
 
-// NewDefault creates a new instance of the default command bus implementation.
+// DefaultCommandBus creates a new instance of the default command bus implementation.
 // Requires an event bus instance for dispatching domain events produced by command handlers.
 // Returns a CommandBus that uses reflection-based handler lookup.
-func NewDefault(eventBus eventbus.EventBus) *defaultCommandBus {
+func DefaultCommandBus(eventBus EventBus) *defaultCommandBus {
 	return &defaultCommandBus{
 		EventBus: eventBus,
 		handlers: make(map[string]CommandHandler),

@@ -3,11 +3,11 @@ package main
 import (
 	"testing"
 
-	"github.com/avanboxel/gocqrs/querybus"
+	"github.com/avanboxel/gocqrs"
 )
 
 func TestGetUsernameQuery(t *testing.T) {
-	queryBus := querybus.NewDefault()
+	queryBus := gocqrs.DefaultQueryBus()
 	queryBus.Register(GetUsernameQuery{}, &GetUsernameQueryHandler{})
 
 	tests := []struct {

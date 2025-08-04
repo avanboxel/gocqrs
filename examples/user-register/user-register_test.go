@@ -3,22 +3,21 @@ package userregister
 import (
 	"testing"
 
-	"github.com/avanboxel/gocqrs/commandbus"
-	"github.com/avanboxel/gocqrs/eventbus"
+	"github.com/avanboxel/gocqrs"
 )
 
 func TestDispatchUserRegister(t *testing.T) {
 	// Track events received
-	var receivedEvents []eventbus.Event
+	var receivedEvents []gocqrs.Event
 
 	// Create event bus and register event handler
-	eventBus := eventbus.NewDefault()
-	eventBus.Register("UserRegistered", func(e eventbus.Event) {
+	eventBus := gocqrs.DefaultEventBus()
+	eventBus.Register("UserRegistered", func(e gocqrs.Event) {
 		receivedEvents = append(receivedEvents, e)
 	})
 
 	// Create command bus
-	commandBus := commandbus.NewDefault(eventBus)
+	commandBus := gocqrs.DefaultCommandBus(eventBus)
 
 	// Create command and handler
 	registerCmd := RegisterCommand{
@@ -27,15 +26,15 @@ func TestDispatchUserRegister(t *testing.T) {
 		Password: "password123",
 	}
 
-	registerHandler := RegisterCommandHandler{
-		events: []eventbus.Event{},
+	registerHandler := &RegisterCommandHandler{
+		events: []gocqrs.Event{},
 	}
 
 	// Register the command with its handler
 	commandBus.Register(registerCmd, registerHandler)
 
-	// Dispatch the command
-	commandBus.Dispatch(registerCmd)
+	// Execute the command synchronously
+	commandBus.Execute(registerCmd)
 
 	// Verify event was dispatched
 	if len(receivedEvents) != 1 {

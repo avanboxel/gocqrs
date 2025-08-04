@@ -3,37 +3,36 @@ package validateusername
 import (
 	"testing"
 
-	"github.com/avanboxel/gocqrs/commandbus"
-	"github.com/avanboxel/gocqrs/eventbus"
+	"github.com/avanboxel/gocqrs"
 )
 
 func TestValidateUsernameValid(t *testing.T) {
 	// Track events received
-	var receivedEvents []eventbus.Event
+	var receivedEvents []gocqrs.Event
 
 	// Create event bus and register event handler
-	eventBus := eventbus.NewDefault()
-	eventBus.Register("UsernameValidated", func(e eventbus.Event) {
+	eventBus := gocqrs.DefaultEventBus()
+	eventBus.Register("UsernameValidated", func(e gocqrs.Event) {
 		receivedEvents = append(receivedEvents, e)
 	})
 
 	// Create command bus
-	commandBus := commandbus.NewDefault(eventBus)
+	commandBus := gocqrs.DefaultCommandBus(eventBus)
 
 	// Create valid username command (8-16 characters)
 	validateCmd := ValidateUsernameCommand{
 		Username: "validuser123",
 	}
 
-	validateHandler := ValidateUsernameHandler{
-		events: []eventbus.Event{},
+	validateHandler := &ValidateUsernameHandler{
+		events: []gocqrs.Event{},
 	}
 
 	// Register the command with its handler
 	commandBus.Register(validateCmd, validateHandler)
 
-	// Dispatch the command
-	commandBus.Dispatch(validateCmd)
+	// Execute the command synchronously
+	commandBus.Execute(validateCmd)
 
 	// Verify event was dispatched
 	if len(receivedEvents) != 1 {
@@ -58,31 +57,31 @@ func TestValidateUsernameValid(t *testing.T) {
 
 func TestValidateUsernameTooShort(t *testing.T) {
 	// Track events received
-	var receivedEvents []eventbus.Event
+	var receivedEvents []gocqrs.Event
 
 	// Create event bus and register event handler
-	eventBus := eventbus.NewDefault()
-	eventBus.Register("UsernameValidated", func(e eventbus.Event) {
+	eventBus := gocqrs.DefaultEventBus()
+	eventBus.Register("UsernameValidated", func(e gocqrs.Event) {
 		receivedEvents = append(receivedEvents, e)
 	})
 
 	// Create command bus
-	commandBus := commandbus.NewDefault(eventBus)
+	commandBus := gocqrs.DefaultCommandBus(eventBus)
 
 	// Create short username command (less than 8 characters)
 	validateCmd := ValidateUsernameCommand{
 		Username: "short",
 	}
 
-	validateHandler := ValidateUsernameHandler{
-		events: []eventbus.Event{},
+	validateHandler := &ValidateUsernameHandler{
+		events: []gocqrs.Event{},
 	}
 
 	// Register the command with its handler
 	commandBus.Register(validateCmd, validateHandler)
 
-	// Dispatch the command
-	commandBus.Dispatch(validateCmd)
+	// Execute the command synchronously
+	commandBus.Execute(validateCmd)
 
 	// Verify event was dispatched
 	if len(receivedEvents) != 1 {
@@ -107,31 +106,31 @@ func TestValidateUsernameTooShort(t *testing.T) {
 
 func TestValidateUsernameTooLong(t *testing.T) {
 	// Track events received
-	var receivedEvents []eventbus.Event
+	var receivedEvents []gocqrs.Event
 
 	// Create event bus and register event handler
-	eventBus := eventbus.NewDefault()
-	eventBus.Register("UsernameValidated", func(e eventbus.Event) {
+	eventBus := gocqrs.DefaultEventBus()
+	eventBus.Register("UsernameValidated", func(e gocqrs.Event) {
 		receivedEvents = append(receivedEvents, e)
 	})
 
 	// Create command bus
-	commandBus := commandbus.NewDefault(eventBus)
+	commandBus := gocqrs.DefaultCommandBus(eventBus)
 
 	// Create long username command (more than 16 characters)
 	validateCmd := ValidateUsernameCommand{
 		Username: "verylongusernamethatistoolong",
 	}
 
-	validateHandler := ValidateUsernameHandler{
-		events: []eventbus.Event{},
+	validateHandler := &ValidateUsernameHandler{
+		events: []gocqrs.Event{},
 	}
 
 	// Register the command with its handler
 	commandBus.Register(validateCmd, validateHandler)
 
-	// Dispatch the command
-	commandBus.Dispatch(validateCmd)
+	// Execute the command synchronously
+	commandBus.Execute(validateCmd)
 
 	// Verify event was dispatched
 	if len(receivedEvents) != 1 {

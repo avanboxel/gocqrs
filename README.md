@@ -26,8 +26,7 @@ The CommandBus handles commands that modify system state and may produce domain 
 package main
 
 import (
-    "github.com/avanboxel/gocqrs/commandbus"
-    "github.com/avanboxel/gocqrs/eventbus"
+    "github.com/avanboxel/gocqrs"
 )
 
 // Define your command
@@ -38,10 +37,10 @@ type CreateUserCommand struct {
 
 // Implement CommandHandler
 type CreateUserCommandHandler struct {
-    events []eventbus.Event
+    events []gocqrs.Event
 }
 
-func (h *CreateUserCommandHandler) Handle(c commandbus.Command) commandbus.CommandHandler {
+func (h *CreateUserCommandHandler) Handle(c gocqrs.Command) gocqrs.CommandHandler {
     cmd := c.(CreateUserCommand)
     
     // Business logic here
@@ -53,13 +52,13 @@ func (h *CreateUserCommandHandler) Handle(c commandbus.Command) commandbus.Comma
     return h
 }
 
-func (h *CreateUserCommandHandler) CollectEvents() []eventbus.Event {
+func (h *CreateUserCommandHandler) CollectEvents() []gocqrs.Event {
     return h.events
 }
 
 func main() {
-    eventBus := eventbus.NewDefault()
-    commandBus := commandbus.NewDefault(eventBus)
+    eventBus := gocqrs.DefaultEventBus()
+    commandBus := gocqrs.DefaultCommandBus(eventBus)
     
     // Register handler
     commandBus.Register(CreateUserCommand{}, &CreateUserCommandHandler{})
@@ -82,7 +81,7 @@ The QueryBus handles read operations that retrieve data without modifying system
 package main
 
 import (
-    "github.com/avanboxel/gocqrs/querybus"
+    "github.com/avanboxel/gocqrs"
 )
 
 // Define your query
@@ -93,27 +92,27 @@ type GetUserQuery struct {
 // Implement QueryHandler
 type GetUserQueryHandler struct{}
 
-func (h *GetUserQueryHandler) Handle(q querybus.Query) querybus.QueryResult {
+func (h *GetUserQueryHandler) Handle(q gocqrs.Query) gocqrs.QueryResult {
     query := q.(GetUserQuery)
     
     // Fetch data logic here
     user := fetchUser(query.ID)
     
     if user != nil {
-        return querybus.QueryResult{
+        return gocqrs.QueryResult{
             Payload: user,
             Success: true,
         }
     }
     
-    return querybus.QueryResult{
+    return gocqrs.QueryResult{
         Payload: "User not found",
         Success: false,
     }
 }
 
 func main() {
-    queryBus := querybus.NewDefault()
+    queryBus := gocqrs.DefaultQueryBus()
     
     // Register handler
     queryBus.Register(GetUserQuery{}, &GetUserQueryHandler{})
@@ -141,7 +140,7 @@ The EventBus handles domain event dispatch for decoupled communication between s
 package main
 
 import (
-    "github.com/avanboxel/gocqrs/eventbus"
+    "github.com/avanboxel/gocqrs"
 )
 
 // Define your event
@@ -154,14 +153,14 @@ func (e UserCreatedEvent) GetEventType() string {
 }
 
 // Define event handler
-func userCreatedHandler(e eventbus.Event) {
+func userCreatedHandler(e gocqrs.Event) {
     event := e.(UserCreatedEvent)
     // Handle the event (send email, update cache, etc.)
     sendWelcomeEmail(event.Name)
 }
 
 func main() {
-    eventBus := eventbus.NewDefault()
+    eventBus := gocqrs.DefaultEventBus()
     
     // Register event handler
     eventBus.Register("UserCreated", userCreatedHandler)

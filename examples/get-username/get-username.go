@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/avanboxel/gocqrs/querybus"
+	"github.com/avanboxel/gocqrs"
 )
 
 type GetUsernameQuery struct {
@@ -12,7 +12,7 @@ type GetUsernameQuery struct {
 
 type GetUsernameQueryHandler struct{}
 
-func (h *GetUsernameQueryHandler) Handle(q querybus.Query) querybus.QueryResult {
+func (h *GetUsernameQueryHandler) Handle(q gocqrs.Query) gocqrs.QueryResult {
 	getUsernameQuery := q.(GetUsernameQuery)
 
 	// Fake username data based on ID
@@ -25,20 +25,20 @@ func (h *GetUsernameQueryHandler) Handle(q querybus.Query) querybus.QueryResult 
 	}
 
 	if username, exists := usernames[getUsernameQuery.ID]; exists {
-		return querybus.QueryResult{
+		return gocqrs.QueryResult{
 			Payload: username,
 			Success: true,
 		}
 	}
 
-	return querybus.QueryResult{
+	return gocqrs.QueryResult{
 		Payload: "unknown_user",
 		Success: false,
 	}
 }
 
 func main() {
-	queryBus := querybus.NewDefault()
+	queryBus := gocqrs.DefaultQueryBus()
 
 	// Register the query handler
 	queryBus.Register(GetUsernameQuery{}, &GetUsernameQueryHandler{})
