@@ -22,7 +22,7 @@ type EventBus interface {
 	// The event's GetEventType() method is used to find the appropriate handler.
 	// Panics if no handler is registered for the event type.
 	Dispatch(e Event)
-	
+
 	// Register associates an event type with its corresponding handler.
 	// The eventType should match the string returned by Event.GetEventType().
 	// Multiple handlers can be registered per event type.
@@ -34,6 +34,8 @@ type EventBus interface {
 type defaultEventBus struct {
 	// handlers maps event type strings to their corresponding handlers
 	handlers map[string][]EventHandler
+	// async determines whether event handlers should be executed concurrently using goroutines
+	async bool
 }
 
 // Dispatch sends the given event to its registered handlers.
@@ -44,8 +46,15 @@ func (d *defaultEventBus) Dispatch(e Event) {
 	if len(handlers) == 0 {
 		panic("no handlers registered for event type: " + e.GetEventType())
 	}
-	for _, handler := range handlers {
-		handler(e)
+
+	if d.async {
+		for _, handler := range handlers {
+			go handler(e)
+		}
+	} else {
+		for _, handler := range handlers {
+			handler(e)
+		}
 	}
 }
 
@@ -56,10 +65,22 @@ func (d *defaultEventBus) Register(eventType string, eh EventHandler) {
 	d.handlers[eventType] = append(d.handlers[eventType], eh)
 }
 
-// DefaultEventBus creates a new instance of the default event bus implementation.
+// DefaultAsyncEventBus creates a new instance of the default event bus implementation.
 // Returns an EventBus that uses string-based event type routing.
-func DefaultEventBus() *defaultEventBus {
+// Event handlers will be executed concurrently using goroutines.
+func DefaultAsyncEventBus() *defaultEventBus {
 	return &defaultEventBus{
 		handlers: make(map[string][]EventHandler),
+		async:    true,
+	}
+}
+
+// DefaultSyncEventBus creates a new instance of the default event bus implementation.
+// Returns an EventBus that uses string-based event type routing.
+// Event handlers will be executed synchronously (one by one).
+func DefaultSyncEventBus() *defaultEventBus {
+	return &defaultEventBus{
+		handlers: make(map[string][]EventHandler),
+		async:    false,
 	}
 }

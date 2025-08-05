@@ -57,7 +57,7 @@ func (h *CreateUserCommandHandler) CollectEvents() []gocqrs.Event {
 }
 
 func main() {
-    eventBus := gocqrs.DefaultEventBus()
+    eventBus := gocqrs.DefaultSyncEventBus() // or DefaultAsyncEventBus() for concurrent execution
     commandBus := gocqrs.DefaultCommandBus(eventBus)
     
     // Register handler
@@ -160,7 +160,7 @@ func userCreatedHandler(e gocqrs.Event) {
 }
 
 func main() {
-    eventBus := gocqrs.DefaultEventBus()
+    eventBus := gocqrs.DefaultSyncEventBus() // or DefaultAsyncEventBus() for concurrent execution
     
     // Register event handler
     eventBus.Register("UserCreated", userCreatedHandler)

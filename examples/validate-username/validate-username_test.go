@@ -11,7 +11,7 @@ func TestValidateUsernameValid(t *testing.T) {
 	var receivedEvents []gocqrs.Event
 
 	// Create event bus and register event handler
-	eventBus := gocqrs.DefaultEventBus()
+	eventBus := gocqrs.DefaultSyncEventBus()
 	eventBus.Register("UsernameValidated", func(e gocqrs.Event) {
 		receivedEvents = append(receivedEvents, e)
 	})
@@ -60,7 +60,7 @@ func TestValidateUsernameTooShort(t *testing.T) {
 	var receivedEvents []gocqrs.Event
 
 	// Create event bus and register event handler
-	eventBus := gocqrs.DefaultEventBus()
+	eventBus := gocqrs.DefaultSyncEventBus()
 	eventBus.Register("UsernameValidated", func(e gocqrs.Event) {
 		receivedEvents = append(receivedEvents, e)
 	})
@@ -109,7 +109,7 @@ func TestValidateUsernameTooLong(t *testing.T) {
 	var receivedEvents []gocqrs.Event
 
 	// Create event bus and register event handler
-	eventBus := gocqrs.DefaultEventBus()
+	eventBus := gocqrs.DefaultSyncEventBus()
 	eventBus.Register("UsernameValidated", func(e gocqrs.Event) {
 		receivedEvents = append(receivedEvents, e)
 	})

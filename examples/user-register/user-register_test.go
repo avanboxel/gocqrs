@@ -11,7 +11,7 @@ func TestDispatchUserRegister(t *testing.T) {
 	var receivedEvents []gocqrs.Event
 
 	// Create event bus and register event handler
-	eventBus := gocqrs.DefaultEventBus()
+	eventBus := gocqrs.DefaultSyncEventBus()
 	eventBus.Register("UserRegistered", func(e gocqrs.Event) {
 		receivedEvents = append(receivedEvents, e)
 	})
